@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "dotnet-delice": {
+      "version": "1.5.2",
+      "commands": [
+        "dotnet-delice"
+      ]
+    }
+  }
+}

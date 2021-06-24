@@ -1,0 +1,59 @@
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/ecosystems/dotnet-core?view=azure-devops
+
+trigger:
+  - develop
+  - release
+  - master
+
+pool:
+  vmImage: "windows-latest"
+
+variables:
+  buildConfiguration: "Release"
+
+steps:
+  - checkout: self
+    submodules: recursive
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: "restore"
+      workingDirectory: "$(Build.SourcesDirectory)"
+      projects: "**/*.csproj"
+    displayName: "dotnet restore"
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: "custom"
+      custom: "tool"
+      arguments: "install -g dotnet-delice"
+      workingDirectory: "$(Build.SourcesDirectory)"
+    displayName: "dotnet install tool delice"
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: "custom"
+      custom: "tool"
+      arguments: "restore"
+      workingDirectory: "$(Build.SourcesDirectory)"
+    displayName: "dotnet tool restore"
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: "custom"
+      custom: "delice"
+      arguments: '--check-github --json --json-output "./licenses.json"'
+      workingDirectory: "$(Build.SourcesDirectory)"
+    displayName: "dotnet run tool delice"
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: publish
+      publishWebProjects: True
+      arguments: "--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)"
+      zipAfterPublish: False
+      workingDirectory: "$(Build.SourcesDirectory)"
+      projects: "**/*.csproj"
+    displayName: "dotnet publish $(buildConfiguration)"
+
+  - task: PublishBuildArtifacts@1
